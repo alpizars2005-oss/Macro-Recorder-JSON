@@ -1,43 +1,36 @@
 # Privacy and Safety
 
-## Local-only macro data
+## Local data
 
-Macro Recorder JSON does not require an online account, API key, or cloud service. Recorded events remain on the local computer unless the user manually copies or uploads a JSON file.
+Macro events remain in memory until the user explicitly saves a JSON file. The application does not upload macros and does not require an account or API key.
 
-The first launcher run may download the declared Python dependency with `pip`. The application itself does not transmit recorded macro data.
+The bootstrapper may access the Python package index only when a required dependency is missing, outdated, or broken. Valid environments skip the download step.
 
 ## Printable keys
 
-Printable-key recording is disabled by default because typed characters may reveal sensitive information. Enable it only for a planned macro and disable it again afterward.
+Printable-key recording is disabled on every application start and is never restored as an enabled preference. The application requires an additional confirmation before enabling it for a recording.
 
-Never record while entering:
-
-- Passwords or passphrases.
-- Authentication codes.
-- Banking or payment information.
-- Private messages.
-- Personal identifiers.
-- Confidential workplace information.
+Never record passwords, authentication codes, payment information, private messages, personal identifiers, or confidential workplace data.
 
 ## Visible operation
 
-The application is designed to remain visible while recording or replaying. It does not implement hidden recording, automatic startup, remote control, or background persistence.
+The application has no stealth mode, persistence mechanism, remote-control feature, startup entry, service installation, or hidden data transmission.
+
+## Loaded-file validation
+
+Macro JSON is treated as untrusted input. File size, schema, counts, duration, timestamps, coordinates, scroll values, event types, buttons, and keys are validated before playback.
 
 ## Emergency stop
 
-Press `F12` to request an immediate stop during recording or playback. A visible emergency-stop button is also provided. Test the stop behavior before running a long automation.
+`F12` is reserved and cannot be embedded in a macro. Both recording and playback can be stopped with `F12` or the visible emergency-stop button.
 
-When playback stops or fails, the application attempts to release keyboard keys and mouse buttons that the macro still holds.
+The playback cleanup routine attempts to release every key and mouse button that remains held when playback stops or fails.
 
 ## Safe playback practices
 
-- Test new macros in a non-destructive application such as Notepad.
-- Confirm the correct window is focused before the countdown ends.
-- Avoid playback while file-deletion dialogs, payment forms, terminals, or administrative tools are open.
-- Keep backups of important files.
-- Stop playback if the target interface changes unexpectedly.
-- Inspect JSON files from other people before loading them.
-
-## Authorization
-
-Use the application only on computers, accounts, and workflows that you own or are explicitly authorized to automate.
+- Test unfamiliar macros in a non-destructive application.
+- Inspect files received from another person.
+- Confirm the target window during the countdown.
+- Keep payment forms, deletion dialogs, terminals, and administrative tools closed.
+- Stop immediately when the interface differs from the recorded environment.
+- Verify monitor layout after moving a macro between computers.
