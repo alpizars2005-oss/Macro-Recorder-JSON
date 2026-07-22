@@ -2,27 +2,35 @@
 
 ## Supported version
 
-The latest version on the `main` branch is the supported development version.
+The latest release on `main` is supported.
 
-## Reporting a security concern
+## Reporting a concern
 
-Do not publish passwords, tokens, private macro recordings, personal information, or exploit details in a public issue.
+Do not publish passwords, tokens, private macros, personal information, or detailed exploit steps in a public issue. Use a private GitHub security advisory when available.
 
-Report concerns through a private GitHub security advisory when that option is available for the repository. Include:
+Include:
 
-- A clear description of the concern.
-- Steps required to reproduce it.
+- A clear description.
+- Reproduction steps.
 - The affected version or commit.
-- The expected and observed behavior.
-- Any suggested mitigation.
+- Expected and observed behavior.
+- A suggested mitigation when possible.
 
 ## Security boundaries
 
-Macro Recorder JSON is designed for visible, local automation. The project must not add:
+The project must not add:
 
 - Hidden or deceptive input capture.
 - Credential collection.
 - Remote transmission of recordings.
-- Persistence or automatic startup without clear user control.
-- Security-control bypasses.
-- Automation of Windows secure desktops or authentication prompts.
+- Persistence or automatic startup.
+- Root requirements on Linux.
+- Automation of secure desktops, authentication prompts, or security-control bypasses.
+
+## Untrusted macro files
+
+Loaded JSON files are untrusted. The application enforces file-size, event-count, duration, timestamp, coordinate, scroll, key, button, and schema validation before playback.
+
+## Dependency policy
+
+Runtime dependencies are pinned in `requirements.txt`. The bootstrapper verifies the requirements hash, exact package version, and `pip check` before deciding whether installation is necessary.
