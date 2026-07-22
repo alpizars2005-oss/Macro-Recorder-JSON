@@ -1,38 +1,55 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
-The format is based on Keep a Changelog, and the project uses semantic versioning where practical.
+## [2.0.0] - 2026-07-22
+
+### Added
+
+- Linux desktop support through X11/Xwayland.
+- English and Spanish interface selection.
+- Persistent non-sensitive preferences.
+- `--language en|es`, `--repair`, and `--check-only` launcher options.
+- Smart cross-platform bootstrapper.
+- Windows and Linux copy/paste launch commands.
+- Mouse sampling modes: smooth, balanced, and compact.
+- Schema version 2 with platform, duration, and sampling metadata.
+- Monitor-layout mismatch warnings.
+- File-size, event-count, duration, coordinate, scroll, key, and button limits.
+- Linux, bootstrap, and expanded architecture documentation.
+- CI coverage for Windows and Ubuntu with Python 3.11, 3.12, and 3.13.
+
+### Changed
+
+- Refactored the single-file application into the `macro_app` package.
+- Updated `pynput` from 1.7.7 to 1.8.2.
+- Removed automatic `pip` upgrades from normal startup.
+- Dependencies are now installed only when missing, outdated, or broken.
+- Printable-key recording is never restored as an enabled startup preference.
+- Mouse movement is sampled and coalesced to reduce JSON size.
+- Windows documentation now uses the PowerShell-safe `.\run.bat` command.
+
+### Security
+
+- Macro JSON is treated as untrusted input.
+- `F12` remains reserved and cannot be embedded in a macro.
+- Playback cleanup releases held inputs after interruption or failure.
+- Virtual environments copied between operating systems are detected and recreated.
 
 ## [1.1.0] - 2026-07-21
 
 ### Added
 
-- Strict validation for loaded macro JSON files.
-- Schema-version and virtual-screen metadata.
+- Strict JSON validation.
 - Global `F12` emergency stop during playback.
-- Automatic release of held keys and mouse buttons when playback stops or fails.
-- Atomic JSON file saving.
-- Validation-focused automated tests.
-- DPI-awareness setup for more accurate coordinates on scaled Windows displays.
-
-### Changed
-
-- Improved error messages, interface text, and documentation.
-- The speed selector now accepts only the listed playback speeds.
-- Starting a new recording now warns before clearing the current macro.
+- Atomic JSON saving.
+- DPI-awareness and virtual-screen metadata.
+- Automated tests and Windows CI.
 
 ## [1.0.0] - 2026-07-21
 
 ### Added
 
-- Visible Tkinter desktop interface.
-- Keyboard press and release recording.
-- Mouse movement, click, release, and scroll recording.
-- Human-readable JSON save and load support.
-- Adjustable playback speed and start delay.
-- `F12` emergency stop during recording.
-- Printable-key privacy warning and opt-in control.
-- Windows launcher and debug launcher.
-- English project documentation.
-- Basic automated validation for the example macro.
+- Initial visible Tkinter application.
+- Keyboard and mouse event recording.
+- JSON save/load and playback.
