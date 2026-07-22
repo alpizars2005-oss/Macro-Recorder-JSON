@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.0.2] - 2026-07-22
+
+### Added
+
+- Added a dedicated `macros` folder for personal macro files.
+- The application now creates and uses that folder as the default location for saving and opening macros.
+- Added tests for the macro-folder path helper.
+
+### Security
+
+- Personal JSON macro files inside `macros/` are ignored by Git to reduce the chance of uploading private recordings.
+
 ## [2.0.1] - 2026-07-22
 
 ### Changed
