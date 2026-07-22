@@ -34,6 +34,8 @@ Desktop.ini
 macro_*.json
 recordings/
 private_macros/
+macros/*.json
 
-# Keep the public example tracked
+# Keep public examples and folder documentation tracked
 !example_macro.json
+!macros/README.md
