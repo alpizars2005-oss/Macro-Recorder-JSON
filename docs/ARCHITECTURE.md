@@ -2,57 +2,63 @@
 
 ## Overview
 
-Macro Recorder JSON is a single-process Windows desktop application built with Python.
+Macro Recorder JSON 2.0 uses a small package instead of a single large source file.
 
-The application contains two main layers:
+- `macro_recorder.py`: command-line entry point and language selection.
+- `bootstrap.py`: cross-platform environment and dependency manager.
+- `macro_app/constants.py`: versions, safety limits, and supported values.
+- `macro_app/i18n.py`: English and Spanish translations.
+- `macro_app/settings.py`: non-sensitive persistent preferences.
+- `macro_app/platform_support.py`: Windows/Linux session detection.
+- `macro_app/model.py`: backend-independent schema validation and optimization.
+- `macro_app/recorder.py`: `pynput` capture and playback backend.
+- `macro_app/ui.py`: bilingual Tkinter interface.
 
-1. `Recorder`: captures, validates, stores, loads, saves, and replays input events.
-2. `App`: provides the Tkinter user interface and processes messages from worker threads.
+## Startup flow
+
+1. A platform launcher chooses a compatible Python interpreter.
+2. `bootstrap.py` checks Python, Tkinter, desktop availability, `.venv`, and dependencies.
+3. Dependencies are installed only when the requirements hash or package health check fails.
+4. `macro_recorder.py` loads settings and resolves the requested language.
+5. The Tkinter interface initializes the input backend.
 
 ## Recording flow
 
-1. The user starts a recording from the interface.
-2. `pynput.keyboard.Listener` receives keyboard events.
-3. `pynput.mouse.Listener` receives mouse events.
-4. Each accepted event is timestamped with `time.perf_counter()`.
-5. Events are stored in memory as `MacroEvent` objects.
-6. The user stops the recording with the interface or `F12`.
-7. Events can be serialized to JSON through an atomic file replacement.
+1. The user confirms recording options.
+2. `pynput` listeners receive keyboard and mouse events.
+3. Printable characters are ignored unless the user explicitly enabled them.
+4. Mouse movement is sampled at the selected interval.
+5. Events are timestamped with `time.perf_counter()` and stored in memory.
+6. `F12` or the visible emergency-stop button stops the listeners.
 
-## Loading and validation flow
+## Save flow
 
-1. The selected JSON file is parsed.
-2. The schema version, event count, settings, timestamps, event types, and event-specific fields are validated.
-3. Unsupported keys, mouse buttons, malformed values, and the reserved `F12` key are rejected.
-4. Only validated `MacroEvent` objects are stored for playback.
+1. The in-memory event list is copied under a lock.
+2. Redundant consecutive mouse movements are coalesced.
+3. Platform and virtual-screen metadata are added.
+4. The complete document is serialized as UTF-8 JSON.
+5. A temporary file is written in the destination directory.
+6. `os.replace` atomically replaces the destination.
+
+## Load flow
+
+1. File size is checked before reading.
+2. JSON is parsed.
+3. Schema version, event count, duration, timestamps, event types, fields, coordinates, keys, and buttons are validated.
+4. Only validated events are placed in memory.
+5. The UI compares recorded and current virtual-screen dimensions and warns about mismatches.
 
 ## Playback flow
 
-1. The user loads or records a macro.
-2. Playback starts in a daemon worker thread.
-3. The worker calculates the delay between consecutive event timestamps.
-4. `pynput.keyboard.Controller` and `pynput.mouse.Controller` reproduce the events.
-5. Progress messages are placed in a thread-safe queue.
-6. The Tkinter main thread reads the queue and updates the interface.
-7. Held keys and mouse buttons are released in a `finally` block when playback ends, stops, or fails.
+1. The user confirms playback and receives a countdown.
+2. Playback runs in a daemon worker thread.
+3. Delays are derived from the original event timestamps and selected speed.
+4. A thread-safe queue sends progress updates to Tkinter.
+5. `F12` sets a cancellation event.
+6. A `finally` block releases held keys and mouse buttons after success, interruption, or failure.
 
-## Emergency-stop model
+## Internationalization
 
-- During recording, the recording keyboard listener recognizes `F12` and requests a stop.
-- During playback, a separate listener watches only for `F12`.
-- The visible emergency-stop button remains available when global hooks are restricted.
-- Macro files containing `F12` events are rejected so the reserved stop key cannot be replayed.
+Interface strings are referenced by stable keys. `Translator` formats the English or Spanish template at runtime. The language can be selected through the UI or `--language en|es` and is stored in the per-user settings file.
 
-## Threading model
-
-Tkinter must be updated from its main thread. Playback therefore runs in a worker thread, while interface updates are delivered through `queue.Queue`.
-
-The application polls the queue with `after(100, ...)`, avoiding direct cross-thread widget access.
-
-## Privacy model
-
-- Events remain in memory until the user explicitly saves them.
-- Saved macros are local JSON files selected by the user.
-- Printable-character recording is disabled by default.
-- The application contains no code that transmits macro data.
-- Personal macro files are excluded by the repository `.gitignore` pattern.
+Sensitive printable-key recording is never persisted as an enabled startup preference.

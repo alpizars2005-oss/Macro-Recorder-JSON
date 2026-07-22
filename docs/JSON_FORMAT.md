@@ -1,13 +1,18 @@
 # JSON Format
 
-## Top-level object
+## Schema version 2
 
 ```json
 {
   "app": "Macro Recorder JSON",
-  "version": "1.1.0",
-  "schema_version": 1,
-  "created_at": "2026-07-21T00:00:00+00:00",
+  "version": "2.0.0",
+  "schema_version": 2,
+  "created_at": "2026-07-22T00:00:00+00:00",
+  "platform": {
+    "system": "Windows",
+    "release": "11",
+    "python": "3.12.0"
+  },
   "screen": {
     "x": 0,
     "y": 0,
@@ -17,29 +22,20 @@
   "settings": {
     "record_mouse_move": true,
     "record_printable_keys": false,
+    "mouse_sample_mode": "balanced",
     "emergency_stop": "F12"
   },
-  "event_count": 1,
+  "event_count": 0,
+  "duration_seconds": 0.0,
   "events": []
 }
 ```
 
-## Top-level fields
+## Compatibility
 
-- `app`: application name.
-- `version`: application version that wrote the file.
-- `schema_version`: macro-document schema version.
-- `created_at`: UTC creation timestamp in ISO 8601 format.
-- `screen`: virtual desktop bounds recorded for diagnostics.
-- `settings`: recording settings associated with the macro.
-- `event_count`: number of entries in `events`.
-- `events`: ordered macro event list.
+Files without `schema_version` are treated as schema version 1. Version 2 adds platform metadata, mouse-sampling metadata, and a declared duration while preserving the version 1 event structure.
 
-Files without `schema_version` are treated as schema version `1` for compatibility with the first public release.
-
-## Common event fields
-
-Every event uses the following structure:
+## Event structure
 
 ```json
 {
@@ -49,9 +45,40 @@ Every event uses the following structure:
 }
 ```
 
-- `t` is the elapsed time in seconds from the start of the recording.
-- `type` identifies how the event should be interpreted.
-- `data` contains values required by that event type.
+- `t`: finite, non-negative elapsed seconds.
+- `type`: supported event category.
+- `data`: event-specific values.
+
+Supported event types:
+
+- `key_down`
+- `key_up`
+- `mouse_move`
+- `mouse_button`
+- `mouse_scroll`
+
+## Keyboard event
+
+```json
+{
+  "t": 0.75,
+  "type": "key_down",
+  "data": {
+    "key": {
+      "kind": "char",
+      "value": "a"
+    }
+  }
+}
+```
+
+Key kinds:
+
+- `char`: exactly one character.
+- `special`: a supported `pynput.keyboard.Key` name.
+- `vk`: an integer virtual-key value encoded as a string.
+
+`F12` is reserved for emergency stop and is rejected during loading.
 
 ## Mouse movement
 
@@ -67,8 +94,6 @@ Every event uses the following structure:
 ```
 
 ## Mouse button
-
-The same event type represents both press and release actions.
 
 ```json
 {
@@ -98,62 +123,19 @@ The same event type represents both press and release actions.
 }
 ```
 
-## Printable keyboard key
+## Validation limits
 
-```json
-{
-  "t": 0.75,
-  "type": "key_down",
-  "data": {
-    "key": {
-      "kind": "char",
-      "value": "a"
-    }
-  }
-}
-```
+- Maximum file size: 20 MB.
+- Maximum events: 250,000.
+- Maximum duration: 24 hours.
+- Timestamps must be finite, non-negative, and ordered.
+- Coordinates and scroll values must remain within configured bounds.
+- Event-specific fields must use the expected JSON types.
+- Unsupported event types, keys, buttons, and schema versions are rejected.
 
-## Special keyboard key
+## Editing guidance
 
-```json
-{
-  "t": 0.80,
-  "type": "key_up",
-  "data": {
-    "key": {
-      "kind": "special",
-      "value": "enter"
-    }
-  }
-}
-```
-
-`F12` is reserved for emergency stop and is rejected during loading.
-
-## Virtual-key representation
-
-Some platform-specific keys may use a virtual-key code:
-
-```json
-{
-  "kind": "vk",
-  "value": "255"
-}
-```
-
-## Validation rules
-
-- `schema_version` must be supported.
-- `event_count` must match the number of events when present.
-- Event timestamps must be finite, non-negative, and in ascending order.
-- Event types and required fields must match this document.
-- Coordinates, scroll amounts, and virtual-key values must use valid integer representations.
-- Boolean fields must be JSON booleans rather than strings or numbers.
-- The reserved emergency-stop key cannot appear in a loaded macro.
-
-## Editing guidelines
-
-- Preserve matching press and release events.
-- Use supported event-type names exactly as documented.
-- Test edited macros in a safe window before using them in a real workflow.
-- Keep the original file as a backup before making manual changes.
+- Preserve matching press/release pairs.
+- Keep event timestamps ordered.
+- Test edited files in a harmless target such as a text editor.
+- Keep a backup of the original JSON.
