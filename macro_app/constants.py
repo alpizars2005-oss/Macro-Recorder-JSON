@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 APP_NAME = "Macro Recorder JSON"
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.0.1"
 SCHEMA_VERSION = 2
 SUPPORTED_SCHEMA_VERSIONS = {1, 2}
 SUPPORTED_LANGUAGES = ("en", "es")

@@ -1,9 +1,11 @@
-"""Cross-platform dependency bootstrapper for Macro Recorder JSON."""
+"""Cross-platform setup and launcher for Macro Recorder JSON."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import json
+import locale
 import os
 from pathlib import Path
 import platform
@@ -22,22 +24,126 @@ MAX_PYTHON = (3, 13)
 REQUIRED_PYNPUT_VERSION = "1.8.2"
 
 
+TEXT: dict[str, dict[str, str]] = {
+    "en": {
+        "description": "Set up and open Macro Recorder JSON.",
+        "repair_help": "Rebuild the local environment before opening the app.",
+        "check_help": "Check the setup without opening the app.",
+        "python_required": "Python 3.11, 3.12, or 3.13 is required. Python {version} was detected.",
+        "python_64": "NOTICE: 64-bit Python is recommended.",
+        "tk_linux": "Tkinter is missing. Install it, then run the launcher again.\nUbuntu/Debian: sudo apt update && sudo apt install -y python3-tk python3-venv\nFedora: sudo dnf install -y python3-tkinter\nArch Linux: sudo pacman -S --needed tk",
+        "tk_other": "Tkinter is missing. Repair or reinstall Python from python.org and include Tcl/Tk support.",
+        "no_desktop": "No Linux desktop session was detected. Run this from a desktop terminal, not a headless SSH session.",
+        "wayland": "NOTICE: Wayland detected. The app works best through Xwayland. Use an X11 session for full Linux support.",
+        "remove_venv": "Removing the current local environment...",
+        "wrong_platform": "The current local environment belongs to another system or is incomplete.",
+        "damaged_venv": "The current local environment is damaged or incompatible.",
+        "create_venv": "Creating the local environment...",
+        "venv_failed": "The local environment could not be created.",
+        "deps_ready": "Everything is ready. No download needed.",
+        "deps_install": "Installing or repairing the required component...",
+        "check_success": "Setup check completed successfully.",
+        "error": "ERROR: {error}",
+    },
+    "es": {
+        "description": "Prepara y abre Macro Recorder JSON.",
+        "repair_help": "Vuelve a crear el entorno local antes de abrir la app.",
+        "check_help": "Revisa la instalación sin abrir la app.",
+        "python_required": "Se necesita Python 3.11, 3.12 o 3.13. Se detectó Python {version}.",
+        "python_64": "AVISO: Se recomienda Python de 64 bits.",
+        "tk_linux": "Falta Tkinter. Instálalo y vuelve a ejecutar la app.\nUbuntu/Debian: sudo apt update && sudo apt install -y python3-tk python3-venv\nFedora: sudo dnf install -y python3-tkinter\nArch Linux: sudo pacman -S --needed tk",
+        "tk_other": "Falta Tkinter. Repara o reinstala Python desde python.org e incluye Tcl/Tk.",
+        "no_desktop": "No se detectó una sesión de escritorio en Linux. Ejecuta esto desde una terminal del escritorio, no desde una sesión SSH sin interfaz.",
+        "wayland": "AVISO: Wayland detectado. La app funciona mejor mediante Xwayland. Usa una sesión X11 para tener compatibilidad completa.",
+        "remove_venv": "Eliminando el entorno local actual...",
+        "wrong_platform": "El entorno local actual pertenece a otro sistema o está incompleto.",
+        "damaged_venv": "El entorno local actual está dañado o no es compatible.",
+        "create_venv": "Creando el entorno local...",
+        "venv_failed": "No se pudo crear el entorno local.",
+        "deps_ready": "Todo está listo. No es necesario descargar nada.",
+        "deps_install": "Instalando o reparando el componente necesario...",
+        "check_success": "La revisión terminó correctamente.",
+        "error": "ERROR: {error}",
+    },
+}
+
+
+def normalize_language(value: str | None) -> str:
+    """Return a supported two-letter language code."""
+
+    if not value:
+        return "en"
+    code = value.strip().lower().replace("_", "-").split("-", 1)[0]
+    return code if code in SUPPORTED_LANGUAGES else "en"
+
+
+def settings_file() -> Path:
+    """Return the app settings path without importing runtime modules."""
+
+    if platform.system().lower() == "windows":
+        base = os.environ.get("APPDATA") or os.environ.get("LOCALAPPDATA")
+        if base:
+            return Path(base) / "MacroRecorderJSON" / "settings.json"
+        return Path.home() / "AppData" / "Roaming" / "MacroRecorderJSON" / "settings.json"
+
+    base = os.environ.get("XDG_CONFIG_HOME")
+    if base:
+        return Path(base) / "macro-recorder-json" / "settings.json"
+    return Path.home() / ".config" / "macro-recorder-json" / "settings.json"
+
+
+def saved_language() -> str | None:
+    """Read only the saved language preference when available."""
+
+    path = settings_file()
+    try:
+        if not path.exists() or path.stat().st_size > 128 * 1024:
+            return None
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            language = normalize_language(str(raw.get("language", "")))
+            return language if language in SUPPORTED_LANGUAGES else None
+    except (OSError, json.JSONDecodeError):
+        return None
+    return None
+
+
+def requested_language(argv: Sequence[str] | None = None) -> str:
+    """Use an explicit option, saved preference, or system language."""
+
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    for index, item in enumerate(arguments):
+        if item.startswith("--language="):
+            return normalize_language(item.split("=", 1)[1])
+        if item in {"--language", "-l"} and index + 1 < len(arguments):
+            return normalize_language(arguments[index + 1])
+
+    stored = saved_language()
+    if stored:
+        return stored
+
+    try:
+        system_language, _encoding = locale.getlocale()
+    except ValueError:
+        system_language = None
+    return normalize_language(system_language)
+
+
+LANGUAGE = requested_language()
+
+
+def tr(key: str, **values: object) -> str:
+    """Return one formatted launcher message."""
+
+    template = TEXT.get(LANGUAGE, TEXT["en"]).get(key, TEXT["en"].get(key, key))
+    return template.format(**values)
+
+
 def parse_args() -> tuple[argparse.Namespace, list[str]]:
-    parser = argparse.ArgumentParser(
-        description="Prepare and launch Macro Recorder JSON.",
-        add_help=True,
-    )
+    parser = argparse.ArgumentParser(description=tr("description"), add_help=True)
     parser.add_argument("--language", "-l", choices=SUPPORTED_LANGUAGES)
-    parser.add_argument(
-        "--repair",
-        action="store_true",
-        help="Recreate the local virtual environment before launching.",
-    )
-    parser.add_argument(
-        "--check-only",
-        action="store_true",
-        help="Verify the environment without launching the desktop application.",
-    )
+    parser.add_argument("--repair", action="store_true", help=tr("repair_help"))
+    parser.add_argument("--check-only", action="store_true", help=tr("check_help"))
     return parser.parse_known_args()
 
 
@@ -59,12 +165,10 @@ def run(
 def validate_python() -> None:
     version = sys.version_info[:2]
     if version < MIN_PYTHON or version > MAX_PYTHON:
-        raise RuntimeError(
-            "Python 3.11, 3.12, or 3.13 is required. "
-            f"Detected Python {sys.version_info.major}.{sys.version_info.minor}."
-        )
+        detected = f"{sys.version_info.major}.{sys.version_info.minor}"
+        raise RuntimeError(tr("python_required", version=detected))
     if sys.maxsize <= 2**32:
-        print("WARNING: 64-bit Python is recommended.")
+        print(tr("python_64"))
 
 
 def validate_tkinter() -> None:
@@ -78,31 +182,18 @@ def validate_tkinter() -> None:
         return
 
     if platform.system().lower() == "linux":
-        raise RuntimeError(
-            "Tkinter is not installed. Install it and run the launcher again.\n"
-            "Ubuntu/Debian: sudo apt update && sudo apt install -y python3-tk python3-venv\n"
-            "Fedora: sudo dnf install -y python3-tkinter\n"
-            "Arch Linux: sudo pacman -S --needed tk"
-        )
-    raise RuntimeError(
-        "Tkinter is unavailable. Repair or reinstall Python from python.org and include Tcl/Tk support."
-    )
+        raise RuntimeError(tr("tk_linux"))
+    raise RuntimeError(tr("tk_other"))
 
 
 def validate_linux_desktop() -> None:
     if platform.system().lower() != "linux":
         return
     if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
-        raise RuntimeError(
-            "No graphical Linux display was detected. Start this launcher from a desktop terminal, "
-            "not a headless SSH session."
-        )
+        raise RuntimeError(tr("no_desktop"))
     session = (os.environ.get("XDG_SESSION_TYPE") or "").lower()
     if session == "wayland" or os.environ.get("WAYLAND_DISPLAY"):
-        print(
-            "WARNING: Wayland detected. pynput may operate through Xwayland with limited access. "
-            "Use an X11 session for the most complete Linux support."
-        )
+        print(tr("wayland"))
 
 
 def venv_python() -> Path:
@@ -117,7 +208,7 @@ def requirements_hash() -> str:
 
 def recreate_environment() -> None:
     if VENV_DIR.exists():
-        print("Removing the existing virtual environment...")
+        print(tr("remove_venv"))
         shutil.rmtree(VENV_DIR)
 
 
@@ -127,7 +218,7 @@ def ensure_environment(repair: bool) -> Path:
 
     python_path = venv_python()
     if VENV_DIR.exists() and not python_path.exists():
-        print("The existing virtual environment belongs to another platform or is incomplete.")
+        print(tr("wrong_platform"))
         recreate_environment()
 
     if python_path.exists():
@@ -142,16 +233,16 @@ def ensure_environment(repair: bool) -> Path:
             capture_output=True,
         )
         if health.returncode != 0:
-            print("The existing virtual environment is incompatible or damaged.")
+            print(tr("damaged_venv"))
             recreate_environment()
 
     python_path = venv_python()
     if not python_path.exists():
-        print("Creating the local virtual environment...")
+        print(tr("create_venv"))
         run([sys.executable, "-m", "venv", str(VENV_DIR)])
 
     if not python_path.exists():
-        raise RuntimeError("The virtual environment could not be created.")
+        raise RuntimeError(tr("venv_failed"))
     return python_path
 
 
@@ -189,10 +280,10 @@ def dependency_state_is_valid(python_path: Path) -> bool:
 
 def ensure_dependencies(python_path: Path) -> None:
     if dependency_state_is_valid(python_path):
-        print("Dependencies are already installed and valid. Skipping download.")
+        print(tr("deps_ready"))
         return
 
-    print("Installing or repairing required dependencies...")
+    print(tr("deps_install"))
     pip_result = subprocess.run(
         [str(python_path), "-m", "pip", "--version"],
         cwd=PROJECT_ROOT,
@@ -227,7 +318,12 @@ def launch(python_path: Path, language: str | None, extra_args: list[str]) -> in
 
 
 def main() -> int:
+    global LANGUAGE
+
     args, extra_args = parse_args()
+    if args.language:
+        LANGUAGE = normalize_language(args.language)
+
     try:
         validate_python()
         validate_tkinter()
@@ -235,11 +331,11 @@ def main() -> int:
         python_path = ensure_environment(args.repair)
         ensure_dependencies(python_path)
         if args.check_only:
-            print("Environment check completed successfully.")
+            print(tr("check_success"))
             return 0
         return launch(python_path, args.language, extra_args)
     except (OSError, RuntimeError, subprocess.CalledProcessError) as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
+        print(tr("error", error=exc), file=sys.stderr)
         return 1
 
 

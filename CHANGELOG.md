@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [2.0.1] - 2026-07-22
+
+### Changed
+
+- Rewrote the English and Spanish interface text with shorter, clearer wording.
+- Replaced literal translations and technical terms with natural everyday language.
+- Changed labels such as `Record printable keys` to `Record what I type` and `Grabar lo que escribo`.
+- Simplified platform messages to `Windows detected` / `Windows detectado` and similar status text.
+- Renamed visible actions to clearer terms such as `Run macro`, `Open macro`, and `Detener ahora`.
+- Added bilingual launcher messages that follow the saved or requested interface language.
+- Added tests that guard the natural wording in both languages.
+
 ## [2.0.0] - 2026-07-22
 
 ### Added
