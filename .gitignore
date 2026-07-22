@@ -1,0 +1,39 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+*.egg-info/
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# IDE and editor settings
+.vscode/
+.idea/
+
+# Operating-system files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Personal macro recordings
+macro_*.json
+recordings/
+private_macros/
+
+# Keep the public example tracked
+!example_macro.json
