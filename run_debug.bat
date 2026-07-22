@@ -1,21 +1,17 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Macro Recorder JSON - Debug
+title Macro Recorder JSON - Diagnostics
+
 echo ===== SYSTEM =====
 ver
 echo.
-echo ===== PYTHON =====
+echo ===== PYTHON COMMANDS =====
 where py
 where python
 py --list
-python --version
 echo.
-echo ===== APP =====
-if exist ".venv\Scripts\python.exe" (
-    ".venv\Scripts\python.exe" macro_recorder.py
-) else (
-    echo Virtual environment not found. Run run.bat first.
-)
+echo ===== BOOTSTRAP CHECK =====
+call "%~dp0run_windows.bat" --check-only
 echo.
 pause
