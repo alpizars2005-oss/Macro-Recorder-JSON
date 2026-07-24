@@ -87,6 +87,8 @@ class AutomationEngine:
         self.thread.start()
 
     def request_stop(self) -> None:
+        if not self.active:
+            return
         self.stop_event.set()
         self.commander_pause.set()
         if self._recorder is not None:
