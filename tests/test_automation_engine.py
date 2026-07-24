@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import os
 import queue
 import time
 import unittest
+
+# GitHub's Linux test runners are headless. The dummy backend is importable
+# without an X server and these tests inject fake mouse/recorder objects.
+os.environ.setdefault("PYNPUT_BACKEND", "dummy")
 
 from macro_app.automation_engine import AutomationEngine
 from macro_app.automation_models import AutomationProfile, PixelTrigger, Point, RGBColor
