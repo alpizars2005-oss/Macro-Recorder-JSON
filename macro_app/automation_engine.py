@@ -207,8 +207,11 @@ class AutomationEngine:
         self.messages.put(("triggered", trigger.name))
 
         with self.action_lock:
-            if self.stop_event.is_set() or not self._window_is_allowed():
-                return not self.stop_event.is_set()
+            if self.stop_event.is_set():
+                return False
+            if not self._window_is_allowed():
+                self.commander_pause.clear()
+                return True
             self._mouse.position = (trigger.click_point.x, trigger.click_point.y)
             self._mouse.click(mouse.Button.left, 1)
 
