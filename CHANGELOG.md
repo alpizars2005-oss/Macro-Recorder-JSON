@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented in this file.
 
+## [3.0.0] - 2026-07-24
+
+### Added
+
+- Added Automation Studio as an optional `--automation` launch mode.
+- Added validated, private JSON profiles for combining saved macros, pixel-color triggers, and timed actions.
+- Added configurable Restart and Replay watchers with consecutive-match confirmation, color tolerance, click revalidation, latching, and cooldown protection.
+- Added a three-position Commander chain that selects each configured tower and presses one configured ability button.
+- Added foreground-window checks before automated clicks and during saved-macro playback.
+- Added Windows and Linux Automation Studio launchers.
+- Added automated tests for profile validation, screen sampling, trigger behavior, and automation directories.
+- Added the `mss` screen-capture dependency.
+
+### Security
+
+- Automation Studio remains visible, local-only, and stoppable globally with `F12`.
+- Personal automation profiles inside `automations/` are ignored by Git.
+- Saved macros stop when the configured foreground window loses focus.
+- Trigger colors are rechecked immediately before clicking to reduce accidental input.
+
 ## [2.0.2] - 2026-07-22
 
 ### Added
