@@ -39,8 +39,10 @@ jobs:
         run: python -m compileall -q bootstrap.py macro_recorder.py macro_app tests
 
       - name: Run unit tests
+        env:
+          PYNPUT_BACKEND: dummy
         run: python -m unittest discover -s tests -v
 
       - name: Validate Linux launch scripts
         if: runner.os == 'Linux'
-        run: bash -n run.sh run_linux.sh
+        run: bash -n run.sh run_linux.sh run_automation.sh

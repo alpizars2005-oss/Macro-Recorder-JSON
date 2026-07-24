@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from macro_app.paths import ensure_macro_directory
+from macro_app.paths import ensure_automation_directory, ensure_macro_directory
 
 
 class PathTests(unittest.TestCase):
@@ -27,6 +27,14 @@ class PathTests(unittest.TestCase):
             second = ensure_macro_directory(target)
 
             self.assertEqual(first, second)
+
+    def test_automation_directory_is_created(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            target = Path(temporary_directory) / "automations"
+            result = ensure_automation_directory(target)
+
+            self.assertTrue(result.is_dir())
+            self.assertEqual(result, target.resolve())
 
 
 if __name__ == "__main__":
