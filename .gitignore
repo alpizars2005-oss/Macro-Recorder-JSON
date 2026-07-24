@@ -30,12 +30,14 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Personal macro recordings
+# Personal macro recordings and automation profiles
 macro_*.json
 recordings/
 private_macros/
 macros/*.json
+automations/*.json
 
 # Keep public examples and folder documentation tracked
 !example_macro.json
 !macros/README.md
+!automations/README.md
