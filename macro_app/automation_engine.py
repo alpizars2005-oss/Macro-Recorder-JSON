@@ -104,9 +104,8 @@ class AutomationEngine:
             if not self._wait_with_countdown(self._arming_delay, "arming_countdown"):
                 return
 
-            if self.profile.run_macro_on_start:
-                if not self._run_start_macro():
-                    return
+            if self.profile.run_macro_on_start and not self._run_start_macro():
+                return
 
             if self.profile.commander.enabled:
                 self.commander_thread = threading.Thread(
@@ -237,8 +236,11 @@ class AutomationEngine:
         self.commander_pause.set()
         self.messages.put(("macro_loading", str(macro_path)))
 
+        if not self._wait_for_allowed_window():
+            return False
+
         with self.action_lock:
-            if self.stop_event.is_set():
+            if self.stop_event.is_set() or not self._window_is_allowed():
                 return False
             try:
                 self._recorder.load(macro_path)
@@ -252,6 +254,10 @@ class AutomationEngine:
             macro_error: str | None = None
             while self._recorder.playing and not self.stop_event.is_set():
                 macro_error = self._drain_recorder_messages(macro_error)
+                if not self._window_is_allowed():
+                    self._recorder.request_stop()
+                    macro_error = "Macro stopped because the allowed window lost focus."
+                    break
                 self.stop_event.wait(0.05)
             if self.stop_event.is_set():
                 self._recorder.request_stop()
@@ -303,6 +309,8 @@ class AutomationEngine:
                 self._mouse.click(mouse.Button.left, 1)
                 if self.stop_event.wait(chain.click_delay):
                     return
+                if self.commander_pause.is_set() or not self._window_is_allowed():
+                    continue
                 self._mouse.position = (chain.ability_point.x, chain.ability_point.y)
                 self._mouse.click(mouse.Button.left, 1)
 
@@ -313,6 +321,13 @@ class AutomationEngine:
                 wait_time += chain.cycle_pause
             if self.stop_event.wait(wait_time):
                 return
+
+    def _wait_for_allowed_window(self) -> bool:
+        while not self.stop_event.is_set():
+            if self._window_is_allowed():
+                return True
+            self.stop_event.wait(0.2)
+        return False
 
     def _window_is_allowed(self) -> bool:
         check = self._window_checker(self.profile.window_title_contains)
