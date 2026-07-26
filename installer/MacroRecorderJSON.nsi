@@ -13,7 +13,6 @@ OutFile "..\dist\Macro-Recorder-JSON-Setup-${APP_VERSION}.exe"
 InstallDir "$LOCALAPPDATA\Programs\Macro Recorder JSON"
 InstallDirRegKey HKCU "Software\MacroRecorderJSON" "InstallDir"
 RequestExecutionLevel user
-SetShellVarContext current
 SetCompressor /SOLID lzma
 BrandingText "${APP_NAME}"
 
@@ -46,6 +45,7 @@ VIAddVersionKey /LANG=1033 "ProductVersion" "${APP_VERSION}"
 
 Section "Macro Recorder JSON" MainSection
   SectionIn RO
+  SetShellVarContext current
   SetOutPath "$INSTDIR"
   File /r "..\dist\MacroRecorderJSON\*.*"
 
@@ -71,6 +71,7 @@ Section "Macro Recorder JSON" MainSection
 SectionEnd
 
 Section "Uninstall"
+  SetShellVarContext current
   Delete "$DESKTOP\Macro Recorder JSON.lnk"
   Delete "$DESKTOP\Automation Studio.lnk"
   RMDir /r "$SMPROGRAMS\Macro Recorder JSON"
