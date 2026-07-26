@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented in this file.
 
+## [3.0.1] - 2026-07-26
+
+### Added
+
+- Added a standalone Windows build that bundles Python and all runtime dependencies.
+- Added a one-click per-user Windows installer with desktop and Start Menu shortcuts for Macro Recorder JSON and Automation Studio.
+- Added a portable ZIP package and SHA-256 checksums.
+- Added a local `build_windows_installer.bat` command for maintainers.
+- Added a GitHub Actions workflow that builds and smoke-tests the packaged application and installer.
+
+### Changed
+
+- Packaged builds now save macros and automation profiles in a writable per-user LocalAppData folder.
+- The frozen executable can relaunch itself from Automation Studio without requiring a Python installation.
+
+### Security
+
+- The installer does not request administrator privileges.
+- Uninstalling preserves personal macros, profiles, and preferences.
+- UPX compression is disabled in the Windows build to keep the package easier to inspect and reduce avoidable antivirus heuristics.
+
 ## [3.0.0] - 2026-07-24
 
 ### Added
