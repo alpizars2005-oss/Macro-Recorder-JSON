@@ -1,13 +1,18 @@
 # Virtual environments
 .venv/
+.venv-build/
 venv/
 env/
 
-# Python cache and build artifacts
+# Python cache and generated build artifacts
 __pycache__/
 *.py[cod]
 *$py.class
-build/
+build/*
+!build/windows/
+build/windows/*
+!build/windows/MacroRecorderJSON.spec
+!build/windows/version_info.txt
 dist/
 *.egg-info/
 

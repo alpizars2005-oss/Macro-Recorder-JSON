@@ -16,6 +16,11 @@ from macro_app.settings import load_settings, save_settings, settings_path
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=APP_NAME)
     parser.add_argument(
+        "legacy_entrypoint",
+        nargs="?",
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
         "--language",
         "-l",
         choices=SUPPORTED_LANGUAGES,
@@ -48,7 +53,7 @@ def main() -> int:
         ensure_automation_directory()
         os.chdir(macro_directory)
     except OSError as exc:
-        print(f"{APP_NAME}: could not prepare the project data folders: {exc}", file=sys.stderr)
+        print(f"{APP_NAME}: could not prepare the application data folders: {exc}", file=sys.stderr)
         return 1
 
     try:
@@ -58,11 +63,14 @@ def main() -> int:
             from macro_app.ui import App
     except ImportError as exc:
         print(f"{APP_NAME}: could not initialize the input backend: {exc}", file=sys.stderr)
-        print(
-            "Windows: run .\\run.bat --repair\n"
-            "Linux: run bash run_linux.sh --repair from a graphical desktop terminal.",
-            file=sys.stderr,
-        )
+        if getattr(sys, "frozen", False):
+            print("Reinstall the application from its Windows setup file.", file=sys.stderr)
+        else:
+            print(
+                "Windows: run .\\run.bat --repair\n"
+                "Linux: run bash run_linux.sh --repair from a graphical desktop terminal.",
+                file=sys.stderr,
+            )
         return 1
 
     app = App(settings, translator, platform_status)
