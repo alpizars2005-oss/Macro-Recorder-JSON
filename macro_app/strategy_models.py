@@ -74,6 +74,7 @@ class RecordedStrategyProfile:
     required_screen_height: int = 1080
     arming_delay: float = 3.0
     load_delay: float = 12.0
+    post_macro_wait: float = 60.0
     max_runs: int = 1
     optimize_recording: bool = True
     key_pulses: list[KeyPulse] = field(default_factory=list)
@@ -88,6 +89,7 @@ class RecordedStrategyProfile:
             required_screen_height=1080,
             arming_delay=3.0,
             load_delay=12.0,
+            post_macro_wait=60.0,
             max_runs=1,
             optimize_recording=True,
             key_pulses=[
@@ -153,6 +155,12 @@ class RecordedStrategyProfile:
             ),
             arming_delay=_number(payload.get("arming_delay", 3.0), 0.0, 60.0, "arming_delay"),
             load_delay=_number(payload.get("load_delay", 12.0), 0.0, 600.0, "load_delay"),
+            post_macro_wait=_number(
+                payload.get("post_macro_wait", 60.0),
+                0.0,
+                600.0,
+                "post_macro_wait",
+            ),
             max_runs=_integer(payload.get("max_runs", 1), 0, 100_000, "max_runs"),
             optimize_recording=_bool(
                 payload.get("optimize_recording", True),
