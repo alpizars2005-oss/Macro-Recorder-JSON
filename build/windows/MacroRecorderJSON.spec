@@ -15,6 +15,11 @@ hiddenimports = sorted(
         + [
             "pynput.keyboard._win32",
             "pynput.mouse._win32",
+            "macro_app.automation_ui",
+            "macro_app.strategy_ui",
+            "macro_app.strategy_engine",
+            "macro_app.strategy_models",
+            "macro_app.strategy_prepare",
         ]
     )
 )

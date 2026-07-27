@@ -8,7 +8,11 @@ import sys
 
 from macro_app.constants import APP_NAME, APP_VERSION, SUPPORTED_LANGUAGES
 from macro_app.i18n import Translator, detect_system_language, normalize_language
-from macro_app.paths import ensure_automation_directory, ensure_macro_directory
+from macro_app.paths import (
+    ensure_automation_directory,
+    ensure_macro_directory,
+    ensure_strategy_directory,
+)
 from macro_app.platform_support import detect_platform_status
 from macro_app.settings import load_settings, save_settings, settings_path
 
@@ -31,6 +35,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Open Automation Studio instead of the macro recorder.",
     )
+    parser.add_argument(
+        "--strategy",
+        action="store_true",
+        help="Open the Recorded Strategy runner.",
+    )
     parser.add_argument("--version", action="version", version=f"{APP_NAME} {APP_VERSION}")
     return parser.parse_args()
 
@@ -51,13 +60,16 @@ def main() -> int:
     try:
         macro_directory = ensure_macro_directory()
         ensure_automation_directory()
+        ensure_strategy_directory()
         os.chdir(macro_directory)
     except OSError as exc:
         print(f"{APP_NAME}: could not prepare the application data folders: {exc}", file=sys.stderr)
         return 1
 
     try:
-        if args.automation:
+        if args.strategy:
+            from macro_app.strategy_ui import StrategyRunner as App
+        elif args.automation:
             from macro_app.automation_ui import AutomationStudio as App
         else:
             from macro_app.ui import App

@@ -15,6 +15,7 @@ from macro_app.paths import (
     default_data_root,
     ensure_automation_directory,
     ensure_macro_directory,
+    ensure_strategy_directory,
 )
 
 
@@ -41,6 +42,14 @@ class PathTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary_directory:
             target = Path(temporary_directory) / "automations"
             result = ensure_automation_directory(target)
+
+            self.assertTrue(result.is_dir())
+            self.assertEqual(result, target.resolve())
+
+    def test_strategy_directory_is_created(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            target = Path(temporary_directory) / "strategies"
+            result = ensure_strategy_directory(target)
 
             self.assertTrue(result.is_dir())
             self.assertEqual(result, target.resolve())
