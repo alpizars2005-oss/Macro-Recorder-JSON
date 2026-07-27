@@ -41,8 +41,10 @@ recordings/
 private_macros/
 macros/*.json
 automations/*.json
+strategies/*.json
 
 # Keep public examples and folder documentation tracked
 !example_macro.json
 !macros/README.md
 !automations/README.md
+!strategies/README.md
