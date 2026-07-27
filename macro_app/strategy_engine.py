@@ -115,6 +115,7 @@ class RecordedStrategyEngine:
 
                 run_stop = threading.Event()
                 ability_threads: list[threading.Thread] = []
+                repeat_requested = False
                 try:
                     stats = self._prepare_macro()
                     self.messages.put(("prepared", stats))
@@ -127,33 +128,47 @@ class RecordedStrategyEngine:
                     if not self._play_macro(run_number):
                         return
 
-                    self.runs_completed += 1
-                    self.messages.put(("run_finished", self.runs_completed))
-
-                    if self.profile.max_runs and self.runs_completed >= self.profile.max_runs:
-                        self.messages.put(("max_runs_reached", self.runs_completed))
-                        return
-
+                    self.messages.put(("macro_finished", run_number))
                     enabled_triggers = [
                         trigger for trigger in self.profile.end_triggers if trigger.enabled
                     ]
-                    if not enabled_triggers:
-                        self.messages.put(("one_shot_complete", self.runs_completed))
-                        return
-
-                    detected = self._wait_for_end_trigger(
-                        sampler,
-                        mouse_controller,
-                        enabled_triggers,
+                    is_last_run = bool(
+                        self.profile.max_runs
+                        and run_number >= self.profile.max_runs
                     )
-                    if detected is None:
+
+                    if enabled_triggers:
+                        detected = self._wait_for_end_trigger(
+                            sampler,
+                            mouse_controller,
+                            enabled_triggers,
+                            click=not is_last_run,
+                        )
+                        if detected is None:
+                            return
+                        self.messages.put(
+                            ("end_detected" if is_last_run else "end_clicked", detected)
+                        )
+                        repeat_requested = not is_last_run
+                    else:
+                        if not self._countdown(
+                            self.profile.post_macro_wait,
+                            "post_macro_wait",
+                        ):
+                            return
+
+                    self.runs_completed += 1
+                    self.messages.put(("run_finished", self.runs_completed))
+                    if is_last_run:
+                        self.messages.put(("max_runs_reached", self.runs_completed))
                         return
-                    self.messages.put(("end_clicked", detected))
                 finally:
                     run_stop.set()
                     for worker in ability_threads:
                         worker.join(timeout=1.0)
 
+                if not repeat_requested:
+                    return
                 if not self._countdown(self.profile.load_delay, "loading"):
                     return
         except Exception as exc:
@@ -298,6 +313,8 @@ class RecordedStrategyEngine:
         sampler: ScreenSampler,
         mouse_controller: MouseController,
         triggers: list[PixelTrigger],
+        *,
+        click: bool,
     ) -> str | None:
         runtime = {trigger.name: TriggerState() for trigger in triggers}
         self.messages.put(("waiting_for_end", None))
@@ -339,11 +356,12 @@ class RecordedStrategyEngine:
                     state.matches = 0
                     continue
 
-                assert trigger.click_point is not None
                 state.latched = True
                 state.last_fired = time.monotonic()
-                mouse_controller.position = (trigger.click_point.x, trigger.click_point.y)
-                mouse_controller.click(mouse.Button.left, 1)
+                if click:
+                    assert trigger.click_point is not None
+                    mouse_controller.position = (trigger.click_point.x, trigger.click_point.y)
+                    mouse_controller.click(mouse.Button.left, 1)
                 return trigger.name
 
             self.stop_event.wait(max(0.01, next_wait))
