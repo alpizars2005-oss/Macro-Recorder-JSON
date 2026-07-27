@@ -45,4 +45,4 @@ jobs:
 
       - name: Validate Linux launch scripts
         if: runner.os == 'Linux'
-        run: bash -n run.sh run_linux.sh run_automation.sh
+        run: bash -n run.sh run_linux.sh run_automation.sh run_strategy.sh
