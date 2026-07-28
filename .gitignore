@@ -35,13 +35,14 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Personal macro recordings and automation profiles
+# Personal macro recordings, profiles, strategies, and visual signatures
 macro_*.json
 recordings/
 private_macros/
 macros/*.json
 automations/*.json
 strategies/*.json
+strategies/visuals/*.pixels.json
 
 # Keep public examples and folder documentation tracked
 !example_macro.json

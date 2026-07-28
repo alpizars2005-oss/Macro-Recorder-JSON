@@ -43,6 +43,7 @@ DATA_ROOT = default_data_root()
 DEFAULT_MACRO_DIRECTORY = DATA_ROOT / "macros"
 AUTOMATION_DIRECTORY = DATA_ROOT / "automations"
 STRATEGY_DIRECTORY = DATA_ROOT / "strategies"
+VISUAL_DIRECTORY = STRATEGY_DIRECTORY / "visuals"
 
 
 def ensure_directory(path: Path) -> Path:
@@ -66,6 +67,12 @@ def ensure_automation_directory(path: Path | None = None) -> Path:
 
 
 def ensure_strategy_directory(path: Path | None = None) -> Path:
-    """Create and return the folder used for recorded strategy profiles."""
+    """Create and return the folder used for recorded and semantic strategies."""
 
     return ensure_directory(path or STRATEGY_DIRECTORY)
+
+
+def ensure_visual_directory(path: Path | None = None) -> Path:
+    """Create and return the folder used for private visual signatures."""
+
+    return ensure_directory(path or VISUAL_DIRECTORY)

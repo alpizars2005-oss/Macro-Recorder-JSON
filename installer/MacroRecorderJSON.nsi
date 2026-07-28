@@ -3,7 +3,7 @@ Unicode True
 !include "MUI2.nsh"
 
 !define APP_NAME "Macro Recorder JSON"
-!define APP_VERSION "3.1.0"
+!define APP_VERSION "3.2.0"
 !define APP_PUBLISHER "Pizzaroles"
 !define APP_EXE "MacroRecorderJSON.exe"
 !define APP_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroRecorderJSON"
@@ -16,7 +16,7 @@ RequestExecutionLevel user
 SetCompressor /SOLID lzma
 BrandingText "${APP_NAME}"
 
-VIProductVersion "3.1.0.0"
+VIProductVersion "3.2.0.0"
 VIAddVersionKey /LANG=1033 "ProductName" "${APP_NAME}"
 VIAddVersionKey /LANG=1033 "CompanyName" "${APP_PUBLISHER}"
 VIAddVersionKey /LANG=1033 "FileDescription" "${APP_NAME} installer"
@@ -27,8 +27,8 @@ VIAddVersionKey /LANG=1033 "ProductVersion" "${APP_VERSION}"
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXE}"
-!define MUI_FINISHPAGE_RUN_PARAMETERS "--strategy --language es"
-!define MUI_FINISHPAGE_RUN_TEXT "Abrir Estrategia grabada"
+!define MUI_FINISHPAGE_RUN_PARAMETERS "--visual-calibration --language es"
+!define MUI_FINISHPAGE_RUN_TEXT "Abrir Calibrar TDS"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\LICENSE"
@@ -56,11 +56,13 @@ Section "Macro Recorder JSON" MainSection
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Macro Recorder JSON.lnk" "$INSTDIR\${APP_EXE}"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Automation Studio.lnk" "$INSTDIR\${APP_EXE}" "--automation --language es"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Estrategia grabada.lnk" "$INSTDIR\${APP_EXE}" "--strategy --language es"
+  CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Calibrar TDS.lnk" "$INSTDIR\${APP_EXE}" "--visual-calibration --language es"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Desinstalar.lnk" "$INSTDIR\Uninstall.exe"
 
   CreateShortcut "$DESKTOP\Macro Recorder JSON.lnk" "$INSTDIR\${APP_EXE}"
   CreateShortcut "$DESKTOP\Automation Studio.lnk" "$INSTDIR\${APP_EXE}" "--automation --language es"
   CreateShortcut "$DESKTOP\Estrategia grabada.lnk" "$INSTDIR\${APP_EXE}" "--strategy --language es"
+  CreateShortcut "$DESKTOP\Calibrar TDS.lnk" "$INSTDIR\${APP_EXE}" "--visual-calibration --language es"
 
   WriteRegStr HKCU "${APP_UNINSTALL_KEY}" "DisplayName" "${APP_NAME}"
   WriteRegStr HKCU "${APP_UNINSTALL_KEY}" "DisplayVersion" "${APP_VERSION}"
@@ -77,6 +79,7 @@ Section "Uninstall"
   Delete "$DESKTOP\Macro Recorder JSON.lnk"
   Delete "$DESKTOP\Automation Studio.lnk"
   Delete "$DESKTOP\Estrategia grabada.lnk"
+  Delete "$DESKTOP\Calibrar TDS.lnk"
   RMDir /r "$SMPROGRAMS\Macro Recorder JSON"
 
   DeleteRegKey HKCU "${APP_UNINSTALL_KEY}"
@@ -84,6 +87,6 @@ Section "Uninstall"
 
   RMDir /r "$INSTDIR"
 
-  ; Personal macros, profiles, and preferences are intentionally preserved in
-  ; LocalAppData so uninstalling or upgrading cannot erase user work.
+  ; Personal macros, profiles, strategies, signatures, and preferences are
+  ; intentionally preserved in LocalAppData so upgrades cannot erase user work.
 SectionEnd
