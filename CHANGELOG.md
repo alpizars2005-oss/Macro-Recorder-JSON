@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Added a documented review of the public TDS macro ecosystem with licensing boundaries and a curated feature roadmap.
+- Added reusable retry policies with bounded exponential backoff, timeouts, and deterministic client-relative placement jitter.
+- Added starvation-safe priority scheduling for visual detectors.
+- Added semantic strategy source attribution, compatibility requirements, visual detector definitions, and safe relative template paths.
+- Added target-level upgrades, wave waits, automatic skip controls, detector-aware abilities, and expected-result actions.
+- Added backward-compatible loading for the first semantic strategy retry fields.
+
+### Security
+
+- Community strategies remain non-executable JSON data with strict size, path, coordinate, list, and reference validation.
+- GPL project code and assets are not bundled or translated into this MIT-licensed project.
+
 ## [3.0.1] - 2026-07-26
 
 ### Added
