@@ -51,29 +51,36 @@ class RetryPolicy:
         default_delay: float,
     ) -> "RetryPolicy":
         if value is None:
-            return cls(attempts=default_attempts, initial_delay=default_delay)
+            return cls(
+                attempts=default_attempts,
+                initial_delay=default_delay,
+                max_delay=max(2.0, default_delay),
+            )
         if not isinstance(value, dict):
             raise ValueError(f"{field_name} must be an object.")
+
+        initial_delay = _number(
+            value.get("initial_delay", default_delay),
+            0.0,
+            30.0,
+            f"{field_name}.initial_delay",
+        )
+        max_delay = _number(
+            value.get("max_delay", max(2.0, initial_delay)),
+            0.0,
+            60.0,
+            f"{field_name}.max_delay",
+        )
         return cls(
             attempts=_integer(value.get("attempts", default_attempts), 1, 100, f"{field_name}.attempts"),
-            initial_delay=_number(
-                value.get("initial_delay", default_delay),
-                0.0,
-                30.0,
-                f"{field_name}.initial_delay",
-            ),
+            initial_delay=initial_delay,
             backoff_multiplier=_number(
                 value.get("backoff_multiplier", 1.50),
                 1.0,
                 10.0,
                 f"{field_name}.backoff_multiplier",
             ),
-            max_delay=_number(
-                value.get("max_delay", 2.0),
-                0.0,
-                60.0,
-                f"{field_name}.max_delay",
-            ),
+            max_delay=max_delay,
             timeout_seconds=_number(
                 value.get("timeout_seconds", 30.0),
                 0.0,
