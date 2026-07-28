@@ -12,7 +12,7 @@ import os
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .automation_models import Point, RGBColor
 from .client_geometry import ClientRect, NormalizedPoint
@@ -20,7 +20,9 @@ from .screen_capture import ScreenSampler, color_matches
 
 PIXEL_SIGNATURE_SCHEMA_VERSION = 1
 MAX_SIGNATURE_BYTES = 256 * 1024
+MIN_SIGNATURE_SAMPLES = 3
 MAX_SIGNATURE_SAMPLES = 64
+MIN_MATCH_RATIO = 0.50
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,12 +73,15 @@ class PixelSignature:
         name = self.name.strip()
         if not name or len(name) > 100:
             raise ValueError("Pixel-signature name must contain 1 to 100 characters.")
-        if not 1 <= len(self.samples) <= MAX_SIGNATURE_SAMPLES:
+        if not MIN_SIGNATURE_SAMPLES <= len(self.samples) <= MAX_SIGNATURE_SAMPLES:
             raise ValueError(
-                f"Pixel signatures must contain 1 to {MAX_SIGNATURE_SAMPLES} samples."
+                f"Pixel signatures must contain {MIN_SIGNATURE_SAMPLES} to "
+                f"{MAX_SIGNATURE_SAMPLES} samples."
             )
-        if not 0.0 <= self.minimum_ratio <= 1.0:
-            raise ValueError("Pixel-signature minimum ratio must be between 0 and 1.")
+        if not MIN_MATCH_RATIO <= self.minimum_ratio <= 1.0:
+            raise ValueError(
+                f"Pixel-signature minimum ratio must be between {MIN_MATCH_RATIO:g} and 1."
+            )
 
     @classmethod
     def from_payload(cls, payload: Any) -> "PixelSignature":
@@ -99,7 +104,7 @@ class PixelSignature:
             ),
             minimum_ratio=_number(
                 payload.get("minimum_ratio", 0.80),
-                0.0,
+                MIN_MATCH_RATIO,
                 1.0,
                 "minimum_ratio",
             ),
@@ -139,8 +144,10 @@ class PixelSignatureMatcher:
         threshold: float | None = None,
     ) -> PixelSignatureMatch:
         required = signature.minimum_ratio if threshold is None else threshold
-        if not 0.0 <= required <= 1.0:
-            raise ValueError("Signature threshold must be between 0 and 1.")
+        if not MIN_MATCH_RATIO <= required <= 1.0:
+            raise ValueError(
+                f"Signature threshold must be between {MIN_MATCH_RATIO:g} and 1."
+            )
 
         matched = 0
         for sample in signature.samples:
@@ -151,7 +158,7 @@ class PixelSignatureMatcher:
 
         total = len(signature.samples)
         raw_ratio = matched / total
-        normalized_score = 1.0 if raw_ratio >= required else raw_ratio / max(required, 1e-9)
+        normalized_score = 1.0 if raw_ratio >= required else raw_ratio / required
         return PixelSignatureMatch(
             score=min(1.0, normalized_score),
             matched_samples=matched,
