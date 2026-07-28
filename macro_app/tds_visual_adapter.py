@@ -87,9 +87,8 @@ class TDSVisualAdapter:
             return ActionResult(False, "Roblox lost focus before placement.", retryable=False)
 
         with self.mouse_lock:
-            self._tap(str(action.slot), stop_event)
-            if stop_event.is_set():
-                return ActionResult(False, "Placement stopped before clicking.", retryable=False)
+            if not self._tap(self._slot_key(action.slot), stop_event):
+                return ActionResult(False, "Tower slot could not be selected.", retryable=False)
             self.mouse.position = point.to_desktop(rect)
             self.mouse.click(mouse.Button.left, 1)
 
@@ -118,6 +117,12 @@ class TDSVisualAdapter:
         point = self.tower_points.get(action.tower_id.casefold())
         if point is None:
             return ActionResult(False, f"Unknown tower position: {action.tower_id}.", False)
+        if action.path != 0:
+            return ActionResult(
+                False,
+                "Path-specific upgrades require a calibrated path selector and are not enabled yet.",
+                False,
+            )
         if not action.confirmation_detector:
             return ActionResult(
                 False,
@@ -128,8 +133,12 @@ class TDSVisualAdapter:
         with self.mouse_lock:
             self.mouse.position = point.to_desktop(rect)
             self.mouse.click(mouse.Button.left, 1)
+        if stop_event.wait(0.08):
+            return ActionResult(False, "Upgrade stopped before tower selection completed.", False)
+
         for _ in range(action.levels):
-            self._tap("e", stop_event)
+            if not self._tap("e", stop_event):
+                return ActionResult(False, "Upgrade key could not be sent.", False)
             if stop_event.wait(0.12):
                 return ActionResult(False, "Upgrade stopped.", False)
 
@@ -155,6 +164,12 @@ class TDSVisualAdapter:
         point = self.tower_points.get(action.tower_id.casefold())
         if point is None:
             return ActionResult(False, f"Unknown tower position: {action.tower_id}.", False)
+        if action.path != 0:
+            return ActionResult(
+                False,
+                "Path-specific upgrades require a calibrated path selector and are not enabled yet.",
+                False,
+            )
         if not action.level_detector:
             return ActionResult(
                 False,
@@ -162,13 +177,20 @@ class TDSVisualAdapter:
                 False,
             )
 
-        if self.detectors.matches(action.level_detector, rect):
-            return ActionResult(True, details=action.target_level)
-
         with self.mouse_lock:
             self.mouse.position = point.to_desktop(rect)
             self.mouse.click(mouse.Button.left, 1)
-        self._tap("e", stop_event)
+        if stop_event.wait(0.10):
+            return ActionResult(False, "Upgrade stopped before level inspection.", False)
+
+        current = self._current_rect()
+        if current is None:
+            return ActionResult(False, "Roblox client area is unavailable.", False)
+        if self.detectors.matches(action.level_detector, current):
+            return ActionResult(True, details=action.target_level)
+
+        if not self._tap("e", stop_event):
+            return ActionResult(False, "Upgrade key could not be sent.", False)
         observation = self._wait_detector(
             action.level_detector,
             stop_event,
@@ -176,6 +198,10 @@ class TDSVisualAdapter:
         )
         if observation is not None:
             return ActionResult(True, details=action.target_level)
+        if self._detector_exists("insufficient-funds"):
+            current = self._current_rect()
+            if current is not None and self.detectors.matches("insufficient-funds", current):
+                return ActionResult(False, "Not enough money to reach the target level.")
         return ActionResult(
             False,
             f"Tower '{action.tower_id}' has not reached level {action.target_level} yet.",
@@ -303,18 +329,23 @@ class TDSVisualAdapter:
         self.skip_thread = None
         self.skip_detector = ""
 
-    def _tap(self, character: str, stop_event: threading.Event) -> None:
+    def _tap(self, character: str, stop_event: threading.Event) -> bool:
+        if len(character) != 1 or not character.isprintable():
+            raise ValueError("TDS key taps must contain one printable character.")
         if stop_event.is_set() or not self._window_allowed():
-            return
+            return False
         key = keyboard.KeyCode.from_char(character)
         pressed = False
         try:
             with self.keyboard_lock:
+                if stop_event.is_set() or not self._window_allowed():
+                    return False
                 self.keyboard.press(key)
                 pressed = True
-                stop_event.wait(0.05)
+                interrupted = stop_event.wait(0.05)
                 self.keyboard.release(key)
                 pressed = False
+                return not interrupted and self._window_allowed()
         finally:
             if pressed:
                 try:
@@ -352,3 +383,9 @@ class TDSVisualAdapter:
 
     def _detector_exists(self, name: str) -> bool:
         return name.casefold() in self._known_detector_names
+
+    @staticmethod
+    def _slot_key(slot: int) -> str:
+        if not 1 <= slot <= 10:
+            raise ValueError("Tower slot must be between 1 and 10.")
+        return "0" if slot == 10 else str(slot)
