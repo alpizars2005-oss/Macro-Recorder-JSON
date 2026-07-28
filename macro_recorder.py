@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
         help="Open the Recorded Strategy runner.",
     )
     parser.add_argument(
+        "--tds-simple",
+        action="store_true",
+        help="Open the simple hybrid TDS runner.",
+    )
+    parser.add_argument(
         "--visual-calibration",
         action="store_true",
         help="Open the TDS visual calibration wizard.",
@@ -74,7 +79,9 @@ def main() -> int:
         return 1
 
     try:
-        if args.visual_calibration:
+        if args.tds_simple:
+            from macro_app.simple_tds_ui import SimpleTDSApp as App
+        elif args.visual_calibration:
             from macro_app.visual_calibration_ui import VisualCalibrationApp as App
         elif args.strategy:
             from macro_app.strategy_ui import StrategyRunner as App
