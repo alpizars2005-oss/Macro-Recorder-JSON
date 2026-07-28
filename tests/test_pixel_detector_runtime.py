@@ -39,11 +39,12 @@ class PixelDetectorRuntimeTests(unittest.TestCase):
             path,
             PixelSignature(
                 name="ready",
-                samples=(
+                samples=tuple(
                     PixelSignatureSample(
-                        NormalizedPoint(0.5, 0.5),
+                        NormalizedPoint(0.4 + index * 0.05, 0.5),
                         RGBColor(10, 20, 30),
-                    ),
+                    )
+                    for index in range(3)
                 ),
             ),
         )
@@ -67,7 +68,7 @@ class PixelDetectorRuntimeTests(unittest.TestCase):
             observation = runtime.observe("READY", ClientRect(0, 0, 101, 101))
 
         self.assertTrue(observation.matched)
-        self.assertEqual(observation.matched_samples, 1)
+        self.assertEqual(observation.matched_samples, 3)
 
     def test_wait_for_requires_consecutive_matches(self) -> None:
         with tempfile.TemporaryDirectory() as folder:
