@@ -36,14 +36,16 @@ class PixelSignatureTests(unittest.TestCase):
         rect = ClientRect(100, 200, 101, 101)
         sampler = FakeSampler(
             {
+                (100, 200): RGBColor(5, 10, 15),
                 (150, 250): RGBColor(20, 40, 60),
                 (200, 300): RGBColor(200, 10, 10),
             }
         )
         signature = PixelSignature(
             name="ready",
-            minimum_ratio=0.50,
+            minimum_ratio=2 / 3,
             samples=(
+                PixelSignatureSample(NormalizedPoint(0.0, 0.0), RGBColor(5, 10, 15)),
                 PixelSignatureSample(NormalizedPoint(0.5, 0.5), RGBColor(20, 40, 60)),
                 PixelSignatureSample(NormalizedPoint(1.0, 1.0), RGBColor(0, 0, 0)),
             ),
@@ -51,8 +53,8 @@ class PixelSignatureTests(unittest.TestCase):
 
         result = PixelSignatureMatcher(sampler).evaluate(signature, rect)
 
-        self.assertEqual(result.matched_samples, 1)
-        self.assertEqual(result.total_samples, 2)
+        self.assertEqual(result.matched_samples, 2)
+        self.assertEqual(result.total_samples, 3)
         self.assertEqual(result.score, 1.0)
 
     def test_capture_converts_desktop_point_to_client_relative_point(self) -> None:
@@ -74,15 +76,17 @@ class PixelSignatureTests(unittest.TestCase):
         self.assertEqual(sample.radius, 2)
 
     def test_signature_round_trip_is_atomic_and_validated(self) -> None:
+        samples = tuple(
+            PixelSignatureSample(
+                NormalizedPoint(0.1 * index, 0.2),
+                RGBColor(10 + index, 20, 30),
+                tolerance=15,
+            )
+            for index in range(1, 4)
+        )
         signature = PixelSignature(
             name="call-to-arms-ready",
-            samples=(
-                PixelSignatureSample(
-                    NormalizedPoint(0.1, 0.2),
-                    RGBColor(10, 20, 30),
-                    tolerance=15,
-                ),
-            ),
+            samples=samples,
         )
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "cta.pixels.json"
@@ -97,6 +101,15 @@ class PixelSignatureTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "outside"):
             capture_signature_sample(rect, (99, 99), sampler)
+
+    def test_signature_with_too_few_samples_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "3 to"):
+            PixelSignature(
+                name="unsafe",
+                samples=(
+                    PixelSignatureSample(NormalizedPoint(0.5, 0.5), RGBColor(1, 2, 3)),
+                ),
+            )
 
 
 if __name__ == "__main__":
