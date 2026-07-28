@@ -16,6 +16,7 @@ from macro_app.paths import (
     ensure_automation_directory,
     ensure_macro_directory,
     ensure_strategy_directory,
+    ensure_visual_directory,
 )
 
 
@@ -50,6 +51,14 @@ class PathTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary_directory:
             target = Path(temporary_directory) / "strategies"
             result = ensure_strategy_directory(target)
+
+            self.assertTrue(result.is_dir())
+            self.assertEqual(result, target.resolve())
+
+    def test_visual_directory_is_created(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            target = Path(temporary_directory) / "strategies" / "visuals"
+            result = ensure_visual_directory(target)
 
             self.assertTrue(result.is_dir())
             self.assertEqual(result, target.resolve())
