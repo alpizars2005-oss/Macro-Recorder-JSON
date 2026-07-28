@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-07-28
+
+### Added
+
+- Added `TDS Macro — simple mode`, a small interface with macro selection, one-run start, emergency stop, calibration, and advanced options.
+- Added a hybrid legacy importer that reuses the original recorded timeline instead of rebuilding a successful run from scratch.
+- Added automatic migration reports containing slot-key counts, candidate placement clicks, normalized coordinates, and recorded F/B start times.
+- Added automatic creation of a one-run recorded-strategy profile from an older macro.
+- Added desktop and Start Menu shortcuts for the simple TDS interface.
+- Added automated tests for legacy TDS migration and imported ability timing.
+
+### Changed
+
+- The simple TDS workflow now uses the user's recorded slot order: DJ Booth, Commander, Minigunner, Golden Scout, and Farm on keys 1 through 5.
+- The installer finish page opens the simple TDS interface while keeping the recorder, calibration wizard, and advanced strategy runner available.
+
+### Security
+
+- Imported placement entries are explicitly marked as attempts, not guaranteed successful semantic actions.
+- The original macro remains the authoritative local playback file and is not uploaded to Git.
+- Playback remains visible, foreground-guarded, and globally stoppable with `F12`.
+
 ## [3.2.0] - 2026-07-28
 
 ### Added

@@ -20,6 +20,9 @@ hiddenimports = sorted(
             "macro_app.strategy_engine",
             "macro_app.strategy_models",
             "macro_app.strategy_prepare",
+            "macro_app.simple_tds_ui",
+            "macro_app.legacy_tds_import",
+            "macro_app.visual_calibration_ui",
         ]
     )
 )

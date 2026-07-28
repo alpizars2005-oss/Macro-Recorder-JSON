@@ -3,7 +3,7 @@ Unicode True
 !include "MUI2.nsh"
 
 !define APP_NAME "Macro Recorder JSON"
-!define APP_VERSION "3.2.0"
+!define APP_VERSION "3.3.0"
 !define APP_PUBLISHER "Pizzaroles"
 !define APP_EXE "MacroRecorderJSON.exe"
 !define APP_UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\MacroRecorderJSON"
@@ -16,7 +16,7 @@ RequestExecutionLevel user
 SetCompressor /SOLID lzma
 BrandingText "${APP_NAME}"
 
-VIProductVersion "3.2.0.0"
+VIProductVersion "3.3.0.0"
 VIAddVersionKey /LANG=1033 "ProductName" "${APP_NAME}"
 VIAddVersionKey /LANG=1033 "CompanyName" "${APP_PUBLISHER}"
 VIAddVersionKey /LANG=1033 "FileDescription" "${APP_NAME} installer"
@@ -27,8 +27,8 @@ VIAddVersionKey /LANG=1033 "ProductVersion" "${APP_VERSION}"
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXE}"
-!define MUI_FINISHPAGE_RUN_PARAMETERS "--visual-calibration --language es"
-!define MUI_FINISHPAGE_RUN_TEXT "Abrir Calibrar TDS"
+!define MUI_FINISHPAGE_RUN_PARAMETERS "--tds-simple --language es"
+!define MUI_FINISHPAGE_RUN_TEXT "Abrir TDS Macro — modo simple"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\LICENSE"
@@ -54,12 +54,14 @@ Section "Macro Recorder JSON" MainSection
 
   CreateDirectory "$SMPROGRAMS\Macro Recorder JSON"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Macro Recorder JSON.lnk" "$INSTDIR\${APP_EXE}"
+  CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\TDS Macro - modo simple.lnk" "$INSTDIR\${APP_EXE}" "--tds-simple --language es"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Automation Studio.lnk" "$INSTDIR\${APP_EXE}" "--automation --language es"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Estrategia grabada.lnk" "$INSTDIR\${APP_EXE}" "--strategy --language es"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Calibrar TDS.lnk" "$INSTDIR\${APP_EXE}" "--visual-calibration --language es"
   CreateShortcut "$SMPROGRAMS\Macro Recorder JSON\Desinstalar.lnk" "$INSTDIR\Uninstall.exe"
 
   CreateShortcut "$DESKTOP\Macro Recorder JSON.lnk" "$INSTDIR\${APP_EXE}"
+  CreateShortcut "$DESKTOP\TDS Macro - modo simple.lnk" "$INSTDIR\${APP_EXE}" "--tds-simple --language es"
   CreateShortcut "$DESKTOP\Automation Studio.lnk" "$INSTDIR\${APP_EXE}" "--automation --language es"
   CreateShortcut "$DESKTOP\Estrategia grabada.lnk" "$INSTDIR\${APP_EXE}" "--strategy --language es"
   CreateShortcut "$DESKTOP\Calibrar TDS.lnk" "$INSTDIR\${APP_EXE}" "--visual-calibration --language es"
@@ -77,6 +79,7 @@ SectionEnd
 Section "Uninstall"
   SetShellVarContext current
   Delete "$DESKTOP\Macro Recorder JSON.lnk"
+  Delete "$DESKTOP\TDS Macro - modo simple.lnk"
   Delete "$DESKTOP\Automation Studio.lnk"
   Delete "$DESKTOP\Estrategia grabada.lnk"
   Delete "$DESKTOP\Calibrar TDS.lnk"
