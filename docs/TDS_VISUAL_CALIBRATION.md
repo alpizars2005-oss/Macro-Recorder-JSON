@@ -11,7 +11,7 @@ One screen pixel is easy to match accidentally. A signature combines several poi
 - an allowed RGB tolerance;
 - a small sampling radius.
 
-A detector matches only when its configured percentage of points matches. The default is 80 percent.
+A detector matches only when its configured percentage of points matches. The default is 80 percent, and values below 50 percent are rejected.
 
 ## Open the wizard
 
@@ -111,15 +111,31 @@ These files are ignored by Git by default. They contain only normalized points a
       "color": {"r": 76, "g": 186, "b": 92},
       "tolerance": 30,
       "radius": 1
+    },
+    {
+      "x": 0.09,
+      "y": 0.54,
+      "color": {"r": 58, "g": 148, "b": 74},
+      "tolerance": 30,
+      "radius": 1
+    },
+    {
+      "x": 0.08,
+      "y": 0.56,
+      "color": {"r": 31, "g": 42, "b": 55},
+      "tolerance": 25,
+      "radius": 1
     }
   ]
 }
 ```
 
-Real signatures should contain at least three samples. Five to eight well-chosen points are usually more reliable than increasing the tolerance.
+Three samples are required. Five to eight well-chosen points are usually more reliable than increasing the tolerance.
 
 ## Fail-closed behavior
 
 The new visual adapter does not assume that a mouse click succeeded. A critical semantic placement or upgrade must reference a detector. When the expected state is not confirmed, the action returns a bounded retryable failure. When retries or time limits are exhausted, the strategy stops instead of continuing with a corrupted run.
+
+Path-specific upgrades are also rejected until their selector has been explicitly calibrated. This prevents the adapter from silently applying the wrong route.
 
 This release intentionally supports `.pixels.json` detector assets first. Image-template and OCR adapters can be added later behind the same semantic detector interface after their dependency, licensing, and packaging impact is reviewed.
