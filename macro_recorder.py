@@ -12,6 +12,7 @@ from macro_app.paths import (
     ensure_automation_directory,
     ensure_macro_directory,
     ensure_strategy_directory,
+    ensure_visual_directory,
 )
 from macro_app.platform_support import detect_platform_status
 from macro_app.settings import load_settings, save_settings, settings_path
@@ -40,6 +41,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Open the Recorded Strategy runner.",
     )
+    parser.add_argument(
+        "--visual-calibration",
+        action="store_true",
+        help="Open the TDS visual calibration wizard.",
+    )
     parser.add_argument("--version", action="version", version=f"{APP_NAME} {APP_VERSION}")
     return parser.parse_args()
 
@@ -61,13 +67,16 @@ def main() -> int:
         macro_directory = ensure_macro_directory()
         ensure_automation_directory()
         ensure_strategy_directory()
+        ensure_visual_directory()
         os.chdir(macro_directory)
     except OSError as exc:
         print(f"{APP_NAME}: could not prepare the application data folders: {exc}", file=sys.stderr)
         return 1
 
     try:
-        if args.strategy:
+        if args.visual_calibration:
+            from macro_app.visual_calibration_ui import VisualCalibrationApp as App
+        elif args.strategy:
             from macro_app.strategy_ui import StrategyRunner as App
         elif args.automation:
             from macro_app.automation_ui import AutomationStudio as App
