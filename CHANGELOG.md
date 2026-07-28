@@ -4,19 +4,38 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-07-28
+
 ### Added
 
 - Added a documented review of the public TDS macro ecosystem with licensing boundaries and a curated feature roadmap.
+- Added client-relative semantic strategies for camera alignment, tower placement, upgrades, wave waits, automatic abilities, auto-skip, and expected results.
 - Added reusable retry policies with bounded exponential backoff, timeouts, and deterministic client-relative placement jitter.
 - Added starvation-safe priority scheduling for visual detectors.
-- Added semantic strategy source attribution, compatibility requirements, visual detector definitions, and safe relative template paths.
-- Added target-level upgrades, wave waits, automatic skip controls, detector-aware abilities, and expected-result actions.
-- Added backward-compatible loading for the first semantic strategy retry fields.
+- Added semantic strategy source attribution, compatibility requirements, safe relative detector paths, target-level upgrades, and strict detector references.
+- Added a generic semantic execution engine with pause, resume, foreground checks, camera preparation, bounded retries, automatic ability workers, and defensive cleanup.
+- Added private multi-point pixel signatures that confirm TDS UI states without bundling third-party screenshots or OCR models.
+- Added a visually confirmed TDS adapter that fails closed when critical placements or upgrades lack confirmation.
+- Added the bilingual `Calibrar TDS` wizard for capturing, testing, opening, and saving private detector signatures.
+- Added a dedicated private visual-signature data folder and installer shortcuts for the calibration wizard.
+- Added automated tests for pixel signatures, detector runtime, TDS action confirmation, semantic execution, paths, and retry behavior.
 
 ### Security
 
 - Community strategies remain non-executable JSON data with strict size, path, coordinate, list, and reference validation.
-- GPL project code and assets are not bundled or translated into this MIT-licensed project.
+- Private visual calibration files are excluded from Git by default.
+- GPL project code, assets, OCR models, image templates, and strategies are not bundled or translated into this MIT-licensed project.
+- Critical semantic actions do not silently continue after failed visual confirmation.
+- Automation remains visible, local-only, foreground-guarded, and stoppable with `F12`.
+
+## [3.1.0] - 2026-07-28
+
+### Added
+
+- Added the Recorded Strategy runner for replaying a cleaned human run with automatic ability keys.
+- Added strategy profiles, run limits, end-of-match triggers, and automatic repeat handling.
+- Added recording cleanup that removes idle mouse noise, manual ability presses, repeated key-down events, and incomplete key pairs.
+- Added Windows installer shortcuts for the recorded strategy runner.
 
 ## [3.0.1] - 2026-07-26
 
