@@ -1,0 +1,84 @@
+name: Build TDS Win Tracker Windows
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tds_tracker_build/**"
+      - ".github/workflows/build-tds-win-tracker.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Reconstruct source archive
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .build | Out-Null
+          $parts = Get-ChildItem tds_tracker_build/source.part* | Sort-Object Name
+          if ($parts.Count -ne 6) { throw "Expected 6 source chunks, found $($parts.Count)." }
+          $base64 = ($parts | ForEach-Object { Get-Content $_.FullName -Raw }) -join ''
+          [IO.File]::WriteAllBytes(".build\source.zip", [Convert]::FromBase64String($base64))
+          Expand-Archive ".build\source.zip" ".build\app" -Force
+          Get-ChildItem ".build\app"
+
+      - name: Install dependencies
+        shell: pwsh
+        working-directory: .build/app
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: Validate project and OCR engine
+        shell: pwsh
+        working-directory: .build/app
+        run: |
+          python -m compileall -q .
+          python -c "from rapidocr_onnxruntime import RapidOCR; RapidOCR(text_score=0.45, print_verbose=False, intra_op_num_threads=2); print('OCR engine ready')"
+          python -c "from tds_tracker.ocr import parse_ocr_lines; a=parse_ocr_lines(['TRIUMPH','Coins 472','Gems 0','Time 04:00'],0.9); assert (a.result,a.gold,a.gems,a.duration_seconds)==('win',472,0,240); print('tracker parser tests passed')"
+
+      - name: Build executable
+        shell: pwsh
+        working-directory: .build/app
+        run: |
+          python -m PyInstaller --noconfirm --clean --windowed --name "TDS Win Tracker" --collect-all customtkinter --collect-all rapidocr_onnxruntime --collect-all onnxruntime --hidden-import=PIL._tkinter_finder app.py
+          New-Item -ItemType Directory -Force -Path "dist\TDS Win Tracker\data" | Out-Null
+          New-Item -ItemType Directory -Force -Path "dist\TDS Win Tracker\screenshots" | Out-Null
+          Copy-Item README_ES.md "dist\TDS Win Tracker\README_ES.md"
+
+      - name: Smoke-test packaged executable files
+        shell: pwsh
+        working-directory: .build/app
+        run: |
+          if (-not (Test-Path "dist\TDS Win Tracker\TDS Win Tracker.exe")) { throw "Executable was not generated." }
+          Get-Item "dist\TDS Win Tracker\TDS Win Tracker.exe"
+
+      - name: Package Windows build
+        shell: pwsh
+        working-directory: .build/app
+        run: |
+          Compress-Archive -Path "dist\TDS Win Tracker\*" -DestinationPath "TDS-Win-Tracker-v1.1.0-Windows.zip" -Force
+          Get-Item "TDS-Win-Tracker-v1.1.0-Windows.zip"
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: TDS-Win-Tracker-v1.1.0-Windows
+          path: .build/app/TDS-Win-Tracker-v1.1.0-Windows.zip
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
