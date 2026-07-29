@@ -1,0 +1,1 @@
+This text file is informational; GitHub Actions checks out the pull-request head automatically.
