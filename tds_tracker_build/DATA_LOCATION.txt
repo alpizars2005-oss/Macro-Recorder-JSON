@@ -1,0 +1,2 @@
+Runtime database: data/tracker.db
+Runtime screenshots: screenshots/
