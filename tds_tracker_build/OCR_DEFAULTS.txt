@@ -1,0 +1,4 @@
+Default gold fallback: 472
+Default gems fallback: 0
+Default duration fallback: 240 seconds
+Default OCR minimum confidence: 0.45
