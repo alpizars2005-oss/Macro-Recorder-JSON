@@ -1,0 +1,5 @@
+source.zip
+app/
+dist/
+build/
+*.spec
