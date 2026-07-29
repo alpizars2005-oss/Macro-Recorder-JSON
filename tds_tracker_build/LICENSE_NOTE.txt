@@ -1,0 +1,1 @@
+This build packages the project dependencies under their respective licenses. See the installed Python packages and project source notices for details.

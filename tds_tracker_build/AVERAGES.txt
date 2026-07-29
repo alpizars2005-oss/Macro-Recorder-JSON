@@ -1,0 +1,1 @@
+Dashboard averages: gold per win, gems per win, average match time, gold per hour, gems per hour, win rate, current streak, and best streak.
